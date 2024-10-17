@@ -4,4 +4,3 @@ pillow
 numpy
 pandas
 opencv-python-headless
-pillow_avif 
