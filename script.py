@@ -7,6 +7,7 @@ import csv
 import streamlit as st
 import pandas as pd
 import pillow_avif
+import zipfile
 
 
 def read_image(image):
@@ -263,17 +264,31 @@ def main():
                         font_path_saved,
                         font_size,
                     )
-                    output_videos.append(
-                        output_video[0]
-                    )  # Get the first video path from the list
+                    output_videos.append(output_video[0])  # Get the first video path from the list
 
                     st.success(f"Video {i + 1} processed successfully!")
                     st.video(output_video[0])  # Display the processed video
 
-            st.success("All videos processed!")
+            # Create a ZIP file containing all processed videos
+            zip_filename = os.path.join(output_dir, "processed_videos.zip")
+            with zipfile.ZipFile(zip_filename, 'w') as zipf:
+                for video_path in output_videos:
+                    zipf.write(video_path, arcname=os.path.basename(video_path))
+                    print(f"Added {video_path} to ZIP archive.")
+
+            # Provide a download button for the ZIP file
+            with open(zip_filename, "rb") as zip_file:
+                zip_bytes = zip_file.read()
+                st.download_button(
+                    label="Download All Processed Videos",
+                    data=zip_bytes,
+                    file_name="processed_videos.zip",
+                    mime="application/zip"
+                )
+
+            st.success("All videos processed! Download your ZIP file above.")
         else:
             st.warning("Please upload all required files.")
-
 
 if __name__ == "__main__":
     main()
