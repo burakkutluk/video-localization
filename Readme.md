@@ -3,7 +3,7 @@
 Bu proje, video yerelleştirme sürecini otomatikleştirmek için tasarlanmış bir Streamlit uygulamasıdır. Uygulama, bir temel video üzerine özelleştirilmiş resimler ve başlıklar ekleyerek çoklu video versiyonları oluşturmanıza olanak tanır.
 
 https://videolocalization.streamlit.app/#video-localization-automation
-Bu linkten projenin live versiyonuna ulaşabilirsiniz.
+Bu linkten projenin canlı versiyonuna ulaşabilirsiniz.
 
 ## Proje Amacı
 
@@ -63,7 +63,7 @@ pip install opencv-python numpy moviepy pillow streamlit pandas pillow_avif
 1. Uygulama, temel videodaki yeşil dairesel alanları tespit eder.
 2. Bu alanlara, yüklenen resimleri yerleştirir.
 3. Videonun üst kısmına, CSV dosyasından okunan başlıkları ekler.
-4. Her bir overlay ve başlık kombinasyonu için ayrı bir video oluşturur.
+4. Her bir resim ve başlık kombinasyonu için ayrı bir video oluşturur.
 
 ## Notlar
 
