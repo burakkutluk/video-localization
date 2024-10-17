@@ -7,7 +7,6 @@ import csv
 import streamlit as st
 import pandas as pd
 import pillow_avif
-import shutil
 
 def read_image(image):
     try:
@@ -209,6 +208,7 @@ def main():
                 f.write(font_file.getbuffer())
 
             overlay_images_loaded = [read_image(image) for image in overlay_images]
+
             titles = read_titles_from_csv(title_csv)
             output_videos = []
 
@@ -220,20 +220,10 @@ def main():
                     st.success(f"Video {i + 1} processed successfully!")
                     st.video(output_video[0])  # Display the processed video
 
-            # Create a zip file after processing all videos
-            zip_file_path = os.path.join(output_dir, "processed_videos.zip")
-            with shutil.ZipFile(zip_file_path, 'w') as zipf:
-                for video_path in output_videos:
-                    zipf.write(video_path, os.path.basename(video_path))  # Store only the filename in the zip
-
-            # Create a download link for the zip file
-            with open(zip_file_path, "rb") as f:
-                st.download_button(label="Download All Processed Videos", data=f, file_name="processed_videos.zip", mime="application/zip")
-
             st.success("All videos processed!")
-
         else:
             st.warning("Please upload all required files.")
+
 
 if __name__ == "__main__":
     main()
