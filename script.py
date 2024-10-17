@@ -37,8 +37,7 @@ def create_text_clip(text, size, font_size, color, font_path):
 
     for word in words[1:]:
         test_line = f"{current_line} {word}"
-        bbox = draw.textbbox((0, 0), test_line, font=font)
-        width = bbox[2] - bbox[0]
+        width, _ = draw.textsize(test_line, font=font)
         if width <= size[0] * 0.9:
             current_line = test_line
         else:
