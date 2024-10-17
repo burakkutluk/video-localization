@@ -3,8 +3,10 @@ import numpy as np
 from moviepy.editor import VideoFileClip
 from PIL import Image, ImageDraw, ImageFont
 import os
+import csv
 import streamlit as st
 import pandas as pd
+import pillow_avif
 
 def read_image(image):
     try:
@@ -175,8 +177,9 @@ def process_video(base_video_path, overlay_images, titles, output_dir, font_path
 
 def read_titles_from_csv(title_csv):
     titles = []
+    # 'title_csv' UploadedFile nesnesi olduğundan, içeriği bir DataFrame olarak okuyalım
     df = pd.read_csv(title_csv)
-    titles = df.iloc[:, 0].tolist()  # First column for titles
+    titles = df.iloc[:, 0].tolist()  # İlk sütundan başlıkları alıyoruz
     return titles        
 
 def main():
@@ -210,23 +213,17 @@ def main():
             output_videos = []
 
             for i in range(len(overlay_images_loaded)):
-                with st.spinner(f"Processing video {i + 1}/{len(overlay_images_loaded)}..."):
-                    output_videos = process_video(base_video_path, overlay_images_loaded, titles, output_dir, font_path_saved, font_size)
+                with st.spinner(f"Processing video {i + 1}..."):
+                    output_video = process_video(base_video_path, [overlay_images_loaded[i]], [titles[i]], output_dir, font_path_saved, font_size)
+                    output_videos.append(output_video[0])  # Get the first video path from the list
 
-            st.success("Video processing complete!")
+                    st.success(f"Video {i + 1} processed successfully!")
+                    st.video(output_video[0])  # Display the processed video
 
-            # Add download buttons for each output video
-            for video in output_videos:
-                with open(video, "rb") as f:
-                    video_bytes = f.read()
-                st.download_button(
-                    label=f"Download Video {os.path.basename(video)}",
-                    data=video_bytes,
-                    file_name=os.path.basename(video),
-                    mime="video/mp4"
-                )
+            st.success("All videos processed!")
         else:
             st.warning("Please upload all required files.")
+
 
 if __name__ == "__main__":
     main()
