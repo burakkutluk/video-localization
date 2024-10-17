@@ -27,7 +27,7 @@ def create_text_clip(text, size, font_size, color, font_path):
         print(f"Error: Font file not found or couldn't be read: {font_path}")
         print("Using default font.")
         font = ImageFont.load_default()
-    
+
     img = Image.new("RGBA", size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
@@ -37,7 +37,8 @@ def create_text_clip(text, size, font_size, color, font_path):
 
     for word in words[1:]:
         test_line = f"{current_line} {word}"
-        width, _ = draw.textsize(test_line, font=font)
+        bbox = draw.textbbox((0, 0), test_line, font=font)
+        width = bbox[2] - bbox[0]
         if width <= size[0] * 0.9:
             current_line = test_line
         else:
