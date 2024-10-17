@@ -219,6 +219,15 @@ def main():
 
                     st.success(f"Video {i + 1} processed successfully!")
                     st.video(output_video[0])  # Display the processed video
+                    
+                    # Add a download button for the processed video
+                    with open(output_video[0], "rb") as f:
+                        st.download_button(
+                            label="Download Video",
+                            data=f,
+                            file_name=os.path.basename(output_video[0]),
+                            mime="video/mp4"
+                        )
 
             st.success("All videos processed!")
         else:
