@@ -27,7 +27,7 @@ def create_text_clip(text, size, font_size, color, font_path):
         print(f"Error: Font file not found or couldn't be read: {font_path}")
         print("Using default font.")
         font = ImageFont.load_default()
-
+    
     img = Image.new("RGBA", size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
@@ -37,7 +37,8 @@ def create_text_clip(text, size, font_size, color, font_path):
 
     for word in words[1:]:
         test_line = f"{current_line} {word}"
-        width, _ = draw.textsize(test_line, font=font)
+        bbox = draw.textbbox((0, 0), test_line, font=font)  # Calculate text bounding box
+        width = bbox[2] - bbox[0]
         if width <= size[0] * 0.9:
             current_line = test_line
         else:
@@ -45,12 +46,15 @@ def create_text_clip(text, size, font_size, color, font_path):
             current_line = word
     lines.append(current_line)
 
-    total_height = sum(draw.textsize(line, font=font)[1] for line in lines)
+    total_height = sum(draw.textbbox((0, 0), line, font=font)[3] - draw.textbbox((0, 0), line, font=font)[1] for line in lines)
     y = (size[1] - total_height) / 2
 
     for line in lines:
-        width, height = draw.textsize(line, font=font)
-        outline_color = (0, 0, 0, 255)  # Siyah kenar rengi
+        bbox = draw.textbbox((0, 0), line, font=font)
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
+
+        outline_color = (0, 0, 0, 255)  # Black outline color
         for dx in [-1, 1]:
             for dy in [-1, 1]:
                 draw.text(((size[0] - width) / 2 + dx, y + dy), line, font=font, fill=outline_color)
