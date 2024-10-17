@@ -7,6 +7,7 @@ import csv
 import streamlit as st
 import pandas as pd
 import pillow_avif
+import base64
 
 
 def read_image(image):
