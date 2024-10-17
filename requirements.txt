@@ -3,3 +3,4 @@ moviepy
 pillow
 numpy
 pandas
+opencv-python-headless
