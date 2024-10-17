@@ -209,13 +209,18 @@ def main():
 
             overlay_images_loaded = [read_image(image) for image in overlay_images]
 
-            titles = read_titles_from_csv(title_csv)  # Updated line
-            output_videos = process_video(base_video_path, overlay_images_loaded, titles, output_dir, font_path_saved, font_size)
+            titles = read_titles_from_csv(title_csv)
+            output_videos = []
 
-            st.success("Processing completed!")
-            st.write("Output Videos:")
-            for video in output_videos:
-                st.video(video)
+            for i in range(len(overlay_images_loaded)):
+                with st.spinner(f"Processing video {i + 1}..."):
+                    output_video = process_video(base_video_path, [overlay_images_loaded[i]], [titles[i]], output_dir, font_path_saved, font_size)
+                    output_videos.append(output_video[0])  # Get the first video path from the list
+
+                    st.success(f"Video {i + 1} processed successfully!")
+                    st.video(output_video[0])  # Display the processed video
+
+            st.success("All videos processed!")
         else:
             st.warning("Please upload all required files.")
 
