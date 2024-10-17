@@ -8,10 +8,11 @@ import streamlit as st
 import pandas as pd
 import pillow_avif
 
+
 def read_image(image):
     try:
         img = Image.open(image)
-        img = img.convert('RGBA')
+        img = img.convert("RGBA")
         np_img = np.array(img)
         print(f"Successfully read image: {image.name}")
         print(f"Image shape: {np_img.shape}")
@@ -20,6 +21,7 @@ def read_image(image):
         print(f"Error reading {image.name}: {e}")
         return None
 
+
 def create_text_clip(text, size, font_size, color, font_path):
     try:
         font = ImageFont.truetype(font_path, font_size)
@@ -27,7 +29,7 @@ def create_text_clip(text, size, font_size, color, font_path):
         print(f"Error: Font file not found or couldn't be read: {font_path}")
         print("Using default font.")
         font = ImageFont.load_default()
-    
+
     img = Image.new("RGBA", size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
@@ -37,7 +39,9 @@ def create_text_clip(text, size, font_size, color, font_path):
 
     for word in words[1:]:
         test_line = f"{current_line} {word}"
-        bbox = draw.textbbox((0, 0), test_line, font=font)  # Calculate text bounding box
+        bbox = draw.textbbox(
+            (0, 0), test_line, font=font
+        )  # Calculate text bounding box
         width = bbox[2] - bbox[0]
         if width <= size[0] * 0.9:
             current_line = test_line
@@ -46,7 +50,11 @@ def create_text_clip(text, size, font_size, color, font_path):
             current_line = word
     lines.append(current_line)
 
-    total_height = sum(draw.textbbox((0, 0), line, font=font)[3] - draw.textbbox((0, 0), line, font=font)[1] for line in lines)
+    total_height = sum(
+        draw.textbbox((0, 0), line, font=font)[3]
+        - draw.textbbox((0, 0), line, font=font)[1]
+        for line in lines
+    )
     y = (size[1] - total_height) / 2
 
     for line in lines:
@@ -57,17 +65,24 @@ def create_text_clip(text, size, font_size, color, font_path):
         outline_color = (0, 0, 0, 255)  # Black outline color
         for dx in [-1, 1]:
             for dy in [-1, 1]:
-                draw.text(((size[0] - width) / 2 + dx, y + dy), line, font=font, fill=outline_color)
+                draw.text(
+                    ((size[0] - width) / 2 + dx, y + dy),
+                    line,
+                    font=font,
+                    fill=outline_color,
+                )
         draw.text(((size[0] - width) / 2, y), line, font=font, fill=color)
         y += height
 
     return np.array(img)
+
 
 def create_circular_mask(h, w, center, radius):
     Y, X = np.ogrid[:h, :w]
     dist_from_center = np.sqrt((X - center[0]) ** 2 + (Y - center[1]) ** 2)
     mask = dist_from_center <= radius
     return mask
+
 
 def detect_green_circle(frame):
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -76,7 +91,9 @@ def detect_green_circle(frame):
 
     green_mask = cv2.inRange(hsv_frame, lower_green, upper_green)
 
-    contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
 
     if contours:
         largest_contour = max(contours, key=cv2.contourArea)
@@ -88,7 +105,10 @@ def detect_green_circle(frame):
     print("No green circle detected")
     return None, None
 
-def process_frame(frame, overlay_image, title, font_path, font_size, frame_number, total_frames):
+
+def process_frame(
+    frame, overlay_image, title, font_path, font_size, frame_number, total_frames
+):
     frame = frame.copy()
     center, radius = detect_green_circle(frame)
 
@@ -96,7 +116,9 @@ def process_frame(frame, overlay_image, title, font_path, font_size, frame_numbe
         overlay_resized = cv2.resize(overlay_image, (2 * radius, 2 * radius))
         print(f"Resized overlay shape: {overlay_resized.shape}")
 
-        circular_mask = create_circular_mask(2 * radius, 2 * radius, (radius, radius), radius)
+        circular_mask = create_circular_mask(
+            2 * radius, 2 * radius, (radius, radius), radius
+        )
 
         circular_mask_4ch = np.dstack([circular_mask] * 4)
 
@@ -109,7 +131,7 @@ def process_frame(frame, overlay_image, title, font_path, font_size, frame_numbe
         y_start = max(0, y - radius)
         y_end = min(frame.shape[0], y + radius)
 
-        overlay_section = masked_overlay[0:(y_end - y_start), 0:(x_end - x_start)]
+        overlay_section = masked_overlay[0 : (y_end - y_start), 0 : (x_end - x_start)]
         print(f"Overlay section shape: {overlay_section.shape}")
 
         alpha_s = overlay_section[:, :, 3] / 255.0
@@ -117,11 +139,13 @@ def process_frame(frame, overlay_image, title, font_path, font_size, frame_numbe
 
         for c in range(3):
             frame[y_start:y_end, x_start:x_end, c] = (
-                alpha_s * overlay_section[:, :, c] +
-                alpha_l * frame[y_start:y_end, x_start:x_end, c]
+                alpha_s * overlay_section[:, :, c]
+                + alpha_l * frame[y_start:y_end, x_start:x_end, c]
             )
 
-        print(f"Frame updated with overlay at position: ({x_start}, {y_start}) to ({x_end}, {y_end})")
+        print(
+            f"Frame updated with overlay at position: ({x_start}, {y_start}) to ({x_end}, {y_end})"
+        )
     else:
         print("No green circle detected, skipping overlay")
 
@@ -138,14 +162,17 @@ def process_frame(frame, overlay_image, title, font_path, font_size, frame_numbe
     title_mask = np.dstack([title_mask] * 3)
     title_rgb = title_img[:, :, :3]
 
-    frame[title_y:title_y + title_img.shape[0], :] = (
-        frame[title_y:title_y + title_img.shape[0], :] * (1 - title_mask) +
-        title_rgb * title_mask
+    frame[title_y : title_y + title_img.shape[0], :] = (
+        frame[title_y : title_y + title_img.shape[0], :] * (1 - title_mask)
+        + title_rgb * title_mask
     )
 
     return frame
 
-def process_video(base_video_path, overlay_images, titles, output_dir, font_path, font_size):
+
+def process_video(
+    base_video_path, overlay_images, titles, output_dir, font_path, font_size
+):
     video = VideoFileClip(base_video_path)
     total_frames = int(video.fps * video.duration)
 
@@ -160,7 +187,15 @@ def process_video(base_video_path, overlay_images, titles, output_dir, font_path
 
         def process_frame_with_counter(img):
             nonlocal frame_number
-            processed = process_frame(img, overlay_image, title_text, font_path, font_size, frame_number, total_frames)
+            processed = process_frame(
+                img,
+                overlay_image,
+                title_text,
+                font_path,
+                font_size,
+                frame_number,
+                total_frames,
+            )
             frame_number += 1
             return processed
 
@@ -175,18 +210,24 @@ def process_video(base_video_path, overlay_images, titles, output_dir, font_path
 
     return output_videos
 
+
 def read_titles_from_csv(title_csv):
     titles = []
     # 'title_csv' UploadedFile nesnesi olduğundan, içeriği bir DataFrame olarak okuyalım
     df = pd.read_csv(title_csv)
     titles = df.iloc[:, 0].tolist()  # İlk sütundan başlıkları alıyoruz
-    return titles        
+    return titles
+
 
 def main():
     st.title("Video Localization Automation")
-    
+
     base_video = st.file_uploader("Upload Base Video", type=["mp4", "mov", "avi"])
-    overlay_images = st.file_uploader("Upload Overlay Images", type=["png", "jpg", "jpeg", "webp", "avif"], accept_multiple_files=True)
+    overlay_images = st.file_uploader(
+        "Upload Overlay Images",
+        type=["png", "jpg", "jpeg", "webp", "avif"],
+        accept_multiple_files=True,
+    )
     title_csv = st.file_uploader("Upload Titles CSV", type=["csv"])
     output_dir = st.text_input("Output Directory")
     font_file = st.file_uploader("Upload Font File", type=["ttf"])
@@ -214,11 +255,28 @@ def main():
 
             for i in range(len(overlay_images_loaded)):
                 with st.spinner(f"Processing video {i + 1}..."):
-                    output_video = process_video(base_video_path, [overlay_images_loaded[i]], [titles[i]], output_dir, font_path_saved, font_size)
+                    output_video = process_video(
+                        base_video_path,
+                        [overlay_images_loaded[i]],
+                        [titles[i]],
+                        output_dir,
+                        font_path_saved,
+                        font_size,
+                    )
                     output_videos.append(output_video[0])  # Get the first video path from the list
 
                     st.success(f"Video {i + 1} processed successfully!")
                     st.video(output_video[0])  # Display the processed video
+
+                    # Add download button for the processed video
+                    with open(output_video[0], "rb") as video_file:
+                        video_bytes = video_file.read()
+                        st.download_button(
+                            label=f"Download Processed Video {i + 1}",
+                            data=video_bytes,
+                            file_name=os.path.basename(output_video[0]),
+                            mime="video/mp4"
+                        )  # Adjust MIME type if necessary
 
             st.success("All videos processed!")
         else:
