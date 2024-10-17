@@ -8,7 +8,7 @@ import streamlit as st
 import pandas as pd
 import pillow_avif
 
-
+# Fonksiyon: Görüntüyü oku ve numpy dizisine dönüştür
 def read_image(image):
     try:
         img = Image.open(image)
@@ -21,7 +21,7 @@ def read_image(image):
         print(f"Error reading {image.name}: {e}")
         return None
 
-
+# Fonksiyon: Metin klibini oluştur
 def create_text_clip(text, size, font_size, color, font_path):
     try:
         font = ImageFont.truetype(font_path, font_size)
@@ -33,15 +33,14 @@ def create_text_clip(text, size, font_size, color, font_path):
     img = Image.new("RGBA", size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
+    # Metni satırlara böl
     lines = []
     words = text.split()
     current_line = words[0]
 
     for word in words[1:]:
         test_line = f"{current_line} {word}"
-        bbox = draw.textbbox(
-            (0, 0), test_line, font=font
-        )  # Calculate text bounding box
+        bbox = draw.textbbox((0, 0), test_line, font=font)
         width = bbox[2] - bbox[0]
         if width <= size[0] * 0.9:
             current_line = test_line
@@ -50,6 +49,7 @@ def create_text_clip(text, size, font_size, color, font_path):
             current_line = word
     lines.append(current_line)
 
+    # Metni çiz
     total_height = sum(
         draw.textbbox((0, 0), line, font=font)[3]
         - draw.textbbox((0, 0), line, font=font)[1]
@@ -62,7 +62,8 @@ def create_text_clip(text, size, font_size, color, font_path):
         width = bbox[2] - bbox[0]
         height = bbox[3] - bbox[1]
 
-        outline_color = (0, 0, 0, 255)  # Black outline color
+        # Siyah kontur ekle
+        outline_color = (0, 0, 0, 255)
         for dx in [-1, 1]:
             for dy in [-1, 1]:
                 draw.text(
@@ -76,14 +77,14 @@ def create_text_clip(text, size, font_size, color, font_path):
 
     return np.array(img)
 
-
+# Fonksiyon: Dairesel maske oluştur
 def create_circular_mask(h, w, center, radius):
     Y, X = np.ogrid[:h, :w]
     dist_from_center = np.sqrt((X - center[0]) ** 2 + (Y - center[1]) ** 2)
     mask = dist_from_center <= radius
     return mask
 
-
+# Fonksiyon: Yeşil daireyi tespit et
 def detect_green_circle(frame):
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     lower_green = np.array([40, 40, 40])
@@ -105,7 +106,7 @@ def detect_green_circle(frame):
     print("No green circle detected")
     return None, None
 
-
+# Fonksiyon: Kareyi işle
 def process_frame(
     frame, overlay_image, title, font_path, font_size, frame_number, total_frames
 ):
@@ -113,6 +114,7 @@ def process_frame(
     center, radius = detect_green_circle(frame)
 
     if center is not None and radius > 0:
+        # Overlay'i yeniden boyutlandır ve uygula
         overlay_resized = cv2.resize(overlay_image, (2 * radius, 2 * radius))
         print(f"Resized overlay shape: {overlay_resized.shape}")
 
@@ -134,6 +136,7 @@ def process_frame(
         overlay_section = masked_overlay[0 : (y_end - y_start), 0 : (x_end - x_start)]
         print(f"Overlay section shape: {overlay_section.shape}")
 
+        # Alpha karıştırma
         alpha_s = overlay_section[:, :, 3] / 255.0
         alpha_l = 1.0 - alpha_s
 
@@ -149,6 +152,7 @@ def process_frame(
     else:
         print("No green circle detected, skipping overlay")
 
+    # Başlık ekle
     title_img = create_text_clip(
         title,
         (frame.shape[1], int(frame.shape[0] * 0.2)),
@@ -169,7 +173,7 @@ def process_frame(
 
     return frame
 
-
+# Fonksiyon: Videoyu işle
 def process_video(
     base_video_path, overlay_images, titles, output_dir, font_path, font_size
 ):
@@ -210,7 +214,7 @@ def process_video(
 
     return output_videos
 
-
+# Fonksiyon: CSV'den başlıkları oku
 def read_titles_from_csv(title_csv):
     titles = []
     # 'title_csv' UploadedFile nesnesi olduğundan, içeriği bir DataFrame olarak okuyalım
@@ -218,10 +222,11 @@ def read_titles_from_csv(title_csv):
     titles = df.iloc[:, 0].tolist()  # İlk sütundan başlıkları alıyoruz
     return titles
 
-
+# Ana fonksiyon
 def main():
     st.title("Video Localization Automation")
 
+    # Kullanıcı girişleri
     base_video = st.file_uploader("Upload Base Video", type=["mp4", "mov", "avi"])
     overlay_images = st.file_uploader(
         "Upload Overlay Images",
@@ -235,11 +240,11 @@ def main():
 
     if st.button("Process Video"):
         if base_video and overlay_images and title_csv and output_dir and font_file:
-            # Create directories if not exists
+            # Dizinleri oluştur
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
 
-            # Save the uploaded files
+            # Yüklenen dosyaları kaydet
             base_video_path = os.path.join(output_dir, base_video.name)
             with open(base_video_path, "wb") as f:
                 f.write(base_video.getbuffer())
@@ -248,11 +253,14 @@ def main():
             with open(font_path_saved, "wb") as f:
                 f.write(font_file.getbuffer())
 
+            # Overlay görüntülerini yükle
             overlay_images_loaded = [read_image(image) for image in overlay_images]
 
+            # Başlıkları oku
             titles = read_titles_from_csv(title_csv)
             output_videos = []
 
+            # Her bir overlay ve başlık için video işleme
             for i in range(len(overlay_images_loaded)):
                 with st.spinner(f"Processing video {i + 1}..."):
                     output_video = process_video(
@@ -263,17 +271,14 @@ def main():
                         font_path_saved,
                         font_size,
                     )
-                    output_videos.append(
-                        output_video[0]
-                    )  # Get the first video path from the list
+                    output_videos.append(output_video[0])
 
                     st.success(f"Video {i + 1} processed successfully!")
-                    st.video(output_video[0])  # Display the processed video
+                    st.video(output_video[0])  # İşlenmiş videoyu göster
 
             st.success("All videos processed!")
         else:
             st.warning("Please upload all required files.")
-
 
 if __name__ == "__main__":
     main()
