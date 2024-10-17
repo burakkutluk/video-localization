@@ -263,20 +263,12 @@ def main():
                         font_path_saved,
                         font_size,
                     )
-                    output_videos.append(output_video[0])  # Get the first video path from the list
+                    output_videos.append(
+                        output_video[0]
+                    )  # Get the first video path from the list
 
                     st.success(f"Video {i + 1} processed successfully!")
                     st.video(output_video[0])  # Display the processed video
-
-                    # Add download button for the processed video
-                    with open(output_video[0], "rb") as video_file:
-                        video_bytes = video_file.read()
-                        st.download_button(
-                            label=f"Download Processed Video {i + 1}",
-                            data=video_bytes,
-                            file_name=os.path.basename(output_video[0]),
-                            mime="video/mp4"
-                        )  # Adjust MIME type if necessary
 
             st.success("All videos processed!")
         else:
