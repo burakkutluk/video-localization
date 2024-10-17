@@ -212,13 +212,28 @@ def main():
             titles = read_titles_from_csv(title_csv)
             output_videos = []
 
+            # Initialize session state for video outputs
+            if 'processed_videos' not in st.session_state:
+                st.session_state.processed_videos = []
+
             for i in range(len(overlay_images_loaded)):
                 with st.spinner(f"Processing video {i + 1}..."):
                     output_video = process_video(base_video_path, [overlay_images_loaded[i]], [titles[i]], output_dir, font_path_saved, font_size)
                     output_videos.append(output_video[0])  # Get the first video path from the list
+                    st.session_state.processed_videos.append(output_video[0])  # Store in session state
 
                     st.success(f"Video {i + 1} processed successfully!")
                     st.video(output_video[0])  # Display the processed video
+                    
+                    # Add a download button for the processed video
+                    with open(output_video[0], "rb") as f:
+                        st.download_button(
+                            label="Download Video",
+                            data=f,
+                            file_name=os.path.basename(output_video[0]),
+                            mime="video/mp4",
+                            key=f"download_{i}"  # Unique key for each button
+                        )
 
             st.success("All videos processed!")
         else:
