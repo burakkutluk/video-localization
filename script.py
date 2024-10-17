@@ -218,6 +218,12 @@ def read_titles_from_csv(title_csv):
     titles = df.iloc[:, 0].tolist()  # İlk sütundan başlıkları alıyoruz
     return titles
 
+def get_binary_file_downloader_html(bin_file, file_label='File'):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    bin_str = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+    return href
 
 def main():
     st.title("Video Localization Automation")
@@ -263,12 +269,13 @@ def main():
                         font_path_saved,
                         font_size,
                     )
-                    output_videos.append(
-                        output_video[0]
-                    )  # Get the first video path from the list
+                    output_videos.append(output_video[0])  # Get the first video path from the list
 
                     st.success(f"Video {i + 1} processed successfully!")
                     st.video(output_video[0])  # Display the processed video
+                    
+                    # Add download button for each video
+                    st.markdown(get_binary_file_downloader_html(output_video[0], f'Video {i+1}'), unsafe_allow_html=True)
 
             st.success("All videos processed!")
         else:
