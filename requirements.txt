@@ -1,8 +1,8 @@
 opencv-python
 py-opencv-contrib-headless
-moviepy
-pillow
+moviepy==1.0.3
+pillow==9.1.0
+pillow-avif-plugin==1.2.3
 numpy
 pandas
-opencv-python-headless
-pillow-avif-plugin
+opencv-python-headless==4.5.3.56
