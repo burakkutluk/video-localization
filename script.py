@@ -7,11 +7,6 @@ import csv
 import streamlit as st
 import pandas as pd
 import pillow_avif
-from pyvirtualdisplay import Display
-
-display = Display(visible=0, size=(1920, 1080))
-display.start()
-
 
 
 #Yeşil daireyi tespit et
