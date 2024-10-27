@@ -2,9 +2,6 @@
 
 Bu proje, video yerelleştirme sürecini otomatikleştirmek için tasarlanmış bir uygulamadır. Uygulama, bir temel video üzerine özelleştirilmiş resimler ve başlıklar ekleyerek çoklu video versiyonları oluşturmanıza olanak tanır.
 
-https://videolocalization.streamlit.app/#video-localization-automation
-Bu linkten projenin canlı versiyonuna ulaşabilirsiniz.
-
 ## Proje Amacı
 
 Bu uygulamanın ana amacı, video içerik üreticilerinin ve pazarlama ekiplerinin farklı bölgeler için video içeriklerini hızlı ve etkili bir şekilde uyarlamalarına yardımcı olmaktır. Uygulama şunları yapabilir:
