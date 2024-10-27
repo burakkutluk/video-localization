@@ -1,8 +1,8 @@
 opencv-python
+py-opencv-contrib-headless
 moviepy
 pillow
 numpy
 pandas
-opencv-python-headless
 opencv-python-headless
 pillow-avif-plugin
