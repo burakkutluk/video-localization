@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visualising-stocks-deployment
+  namespace: visualising-stocks
+  labels:
+    app: visualising-stocks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: visualising-stocks
+  template:
+    metadata:
+      labels:
+        app: visualising-stocks
+    spec:
+      containers:
+      - name: visualising-stocks
+        image: burak424/visualising-stocks:latest
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Always
